@@ -1,0 +1,193 @@
+import React, { useEffect, useState } from "react";
+import Clock from "react-live-clock";
+import api from "../api/config"
+import ReactAnimatedWeather from 'react-animated-weather';
+
+export default function Forcast() {
+  let [forecast, setforcast] = useState({});
+  let [city, setcity] = useState("london");
+  let [error, seterror] = useState(false);
+
+  let [iconname, setIconName]=useState("CLEAR_DAY")
+  
+const defaults = {
+  icon: iconname,
+  color: 'goldenrod',
+  size: 100,
+  animate: true
+};
+
+
+
+  function getcityvalue() {
+    let userinput = document.getElementById("cityname").value;
+    if (userinput !== "") {
+      setcity(userinput);
+    } else {
+      alert("please enter city name");
+    }
+  }
+  useEffect(() => {
+    async function getdata() {
+      let response = await fetch(
+        `${api.apiname}q=${city}${api.key}`
+      );
+      if (response.status !== 404) {
+        let data = await response.json();
+        console.log(data);
+        setforcast(data);
+         seterror(false)
+        if(data.weather[0].main ==="Clear"){
+          setIconName("CLEAR_DAY")
+         
+        }
+        else if(data.weather[0].main === "Snow"){
+          setIconName("SNOW")
+        }
+        else if(data.weather[0].main === "Rain" || data.weather[0].main === "Drizzle" || data.weather[0].main === "Thunderstorm"){
+          setIconName("RAIN")
+        }
+        else if(data.weather[0].main === "Smoke"){
+          setIconName("FOG")
+        }
+        else if(data.weather[0].main === "Clouds"){
+          setIconName("CLOUDY")
+        }
+      } else {
+        seterror(true);
+      }
+    }
+    getdata();
+  }, [city]);
+  const currentDate = new Date().toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "numeric",
+    year: "numeric",
+  });
+
+
+  return (
+    <div>
+    
+          <React.Fragment>
+            <div className="container">
+              <div className="city">
+                { error===false?
+                <>
+                  <div className="title">
+                  <h2>{forecast.name} </h2>
+                  <h3>{forecast.sys?.country} </h3></div>
+                </>:
+                <>
+                 <div className="title">
+                  <h2> we can not find your search</h2>
+                </>
+                }
+              
+                
+                <div className="mb-icon">
+                  {" "}
+                  {/* <ReactAnimatedWeather
+                icon={this.state.icon}
+                color={defaults.color}
+                size={defaults.size}
+                animate={defaults.animate}
+              /> */}
+                  <p></p>
+                </div>
+               
+ 
+    <div className="date-time">
+      <div className="dmy">
+        <div id="txt"></div>
+        <div className="current-time">
+          <Clock format="HH:mm:ss" interval={1000} ticking={true} />
+        </div>
+        <div className="current-date">{currentDate}</div>
+      </div>
+      <div className="temperature">
+        <p>
+          {Math.round(forecast.main?.temp)}°<span>C</span>
+        </p>
+      </div>
+    </div>
+
+
+
+</div>   
+              <div className="forecast">
+                <div className="forecast-icon">
+                <ReactAnimatedWeather
+                  icon={defaults.icon}
+                  color={defaults.color}
+                  size={defaults.size}
+                  animate={defaults.animate}
+                />
+                  {/* <ReactAnimatedWeather
+          icon={props.icon}
+          color={defaults.color}
+          size={defaults.size}
+          animate={defaults.animate}
+        /> */}
+                </div>
+                <div className="today-weather">
+                  <h3>{forecast.weather?.[0].main}</h3>
+                  <div className="search-box">
+                    <input
+                      type="text"
+                      className="search-bar"
+                      placeholder="Search any city"
+                      id="cityname"
+                    />
+                    <div className="img-box" onClick={getcityvalue}>
+                      {" "}
+                      <img src="https://images.avishkaar.cc/workflow/newhp/search-white.png" alt="searchicon" />
+                    </div>
+                  </div>
+                  
+                  <ul>
+                    <div>
+                      {" "}
+                      <li className="cityHead">
+                        <p>{forecast.weather?.[0].description}</p>
+                        <img
+                          className="temp"
+                          src={`https://openweathermap.org/img/wn/${forecast.weather?.[0].icon}.png` } alt="weather"
+                        />
+                      </li>
+                      <li>
+                        Temperature{" "}
+                        <span className="temp">
+                          {" "}
+                          {Math.round(forecast.main?.temp)}°c
+                        </span>
+                      </li>
+                      <li>
+                        Humidity{" "}
+                        <span className="temp">{forecast.main?.humidity}%</span>
+                      </li>
+                      <li>
+                        Visibility{" "}
+                        <span className="temp">
+                          {Math.round(forecast?.visibility * 0.0006213)} mi
+                        </span>
+                      </li>
+                      <li>
+                        Wind Speed{" "}
+                        <span className="temp">
+                          {Math.round(forecast.wind?.speed)} km/h
+                        </span>
+                      </li>
+                    </div>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </React.Fragment>
+      
+    
+
+    
+    </div>
+  );
+}
